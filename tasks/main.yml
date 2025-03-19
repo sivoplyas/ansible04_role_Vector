@@ -1,0 +1,35 @@
+---
+- name: Install by APT | daemonize Package installation
+  apt:
+    name: "daemonize"
+    state: present
+    update_cache: true
+  become: true
+- name: Get and Unarchive vector distrib
+  become: true
+  ansible.builtin.unarchive:
+    remote_src: yes
+    src: "https://packages.timber.io/vector/{{ vector_version }}/vector-{{ vector_version }}-{{ vector_platform }}-unknown-linux-gnu.tar.gz"
+    dest: "{{ vector_directory }}"
+    validate_certs: false
+- name: Move vector directory
+  become: true
+  command: "mv {{ vector_directory }}/vector-{{ vector_platform }}-unknown-linux-gnu {{ vector_directory }}/vector"
+  args:
+    creates: "{{ vector_directory }}/vector"
+config {{ vector_directory }}/vector/config/vector.yaml
+- name: Get vector config
+  become: true
+  vars:
+    clickhouse_ip: "{{ vector_clickhouse_ip }}"
+  template:
+    src=./templates/vector.yaml
+    dest="{{ vector_directory }}/vector/config/vector.yaml"
+- name: Stop vector
+  become: true
+  command: |
+    sh -c "pkill vector"
+- name: Start vector
+  become: true
+  command: |
+    /usr/bin/daemonize {{ vector_directory }}/vector/bin/vector --config {{ vector_directory }}/vector/config/vector.yaml
