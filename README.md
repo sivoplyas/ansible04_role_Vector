@@ -1,6 +1,4 @@
-# ansible04_role_Vector
-
-### Роль ansible04_role_Vector
+# Роль ansible04_role_Vector
 Описание: устанавливает Vector
 
 ### Платформa
